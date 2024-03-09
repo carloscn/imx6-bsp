@@ -1,7 +1,0 @@
-# imx6 bsp build system
-
-make uboot
-
-make linux
-
-make bootscript

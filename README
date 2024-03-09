@@ -1,0 +1,9 @@
+# imx6 bsp build system
+
+make uboot
+
+make linux
+
+make bootscript
+
+Note，目前对于正点原子的uboot和Linux的网卡驱动还没有适配。
