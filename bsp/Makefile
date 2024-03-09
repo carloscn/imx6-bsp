@@ -3,9 +3,9 @@ export $(shell sed 's/=.*//' build.cfg)
 
 SHELL := /bin/bash
 BOOT_SCR := boot.scr
-UBOOT := u-boot/u-boot.bin
+UBOOT := u-boot/u-boot-dtb.imx
 KERNEL_IMAGE := linux-imx/arch/arm/boot/zImage
-DTB_IMAGE := linux-imx/arch/arm/boot/dts/imx6ull-14x14-evk-emmc.dtb
+DTB_IMAGE := linux-imx/arch/arm/boot/dts/imx6ull-14x14-evk.dtb
 
 .PHONY: clean rootfs u-boot linux
 
@@ -23,7 +23,7 @@ u-boot:
 	@echo "[INFO] uboot build!"
 
 bootscript:
-	mkimage -C none -A arm -T script -d configs/boot.cmd boot.scr
+	./u-boot/tools/mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "boot script" -d configs/boot.cmd boot.scr 6x_upgrade
 
 linux:
 	-git clone https://github.com/nxp-imx/linux-imx.git --depth=1
@@ -58,13 +58,17 @@ sd_all:
 	sudo umount ${UDISK}3
 	echo "[INFO] done sd all!"
 
-sd_boot: $(BOOT_SCR) $(KERNEL_IMAGE) $(UBOOT)
+sd_boot:
 	@ls ${DISK}
-	BOOT_PART=$(lsblk -no MOUNTPOINT ${DISK} | grep -v '^$' | head -n 1)
-	ROOT_PART=$(lsblk -no MOUNTPOINT ${DISK} | grep -v '^$' | tail -n 1)
+	sudo dd if=${UBOOT} of=${UDISK} bs=512 seek=2 && sync
+	$(eval BOOT_PART=$(shell lsblk -no MOUNTPOINT ${UDISK} | grep -v '^$$' | head -n 1))
+	@echo "Boot partition: $(BOOT_PART)"
 	sudo cp -rfv ${KERNEL_IMAGE} ${BOOT_PART}/
 	sudo cp -rfv ${DTB_IMAGE} ${BOOT_PART}/
 	sudo cp -rfv ${BOOT_SCR} ${BOOT_PART}/
+	sync
+	sudo umount ${UDISK}2
+	sudo umount ${UDISK}3
 
 clean:
 	rm -rf boot.scr
