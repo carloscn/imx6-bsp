@@ -6,6 +6,8 @@ BOOT_SCR := boot.scr
 UBOOT := u-boot/u-boot-dtb.imx
 KERNEL_IMAGE := linux-imx/arch/arm/boot/zImage
 DTB_IMAGE := linux-imx/arch/arm/boot/dts/imx6ull-14x14-evk.dtb
+QEMU_DIR=/opt/qemu/bin
+QEMU_BIN ?= $(QEMU_DIR)/qemu-system-arm
 
 .PHONY: clean rootfs u-boot linux
 
@@ -15,7 +17,9 @@ prepare:
 
 image: $(UBOOT) $(KERNEL_IMAGE) $(DTB_IMAGE) $(BOOT_SCR)
 
-u-boot:
+u-boot: $(UBOOT)
+
+$(UBOOT):
 	-git clone git@github.com:u-boot/u-boot.git --depth=1
 	cd u-boot && export CROSS_COMPILE=${CROSS_COMPILE} && \
 		make mx6ull_14x14_evk_defconfig && make -j16
@@ -25,19 +29,45 @@ u-boot:
 bootscript:
 	./u-boot/tools/mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "boot script" -d configs/boot.cmd boot.scr 6x_upgrade
 
-linux:
+linux: $(KERNEL_IMAGE) $(DTB_IMAGE)
+
+$(DTB_IMAGE):
+$(KERNEL_IMAGE):
 	-git clone https://github.com/nxp-imx/linux-imx.git --depth=1
 	cd linux-imx && \
 		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} imx_v7_defconfig && \
 		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} -j16
 
-$(KERNEL_IMAGE): linux
+virutal-disk: disk.img
 
-$(DTB_IMAGE): linux
+disk.img: $(KERNEL_IMAGE) $(DTB_IMAGE)
+	$(QEMU_DIR)/qemu-img create -f raw t_disk.img 1G
+	parted t_disk.img mklabel msdos
+	parted t_disk.img mkpart primary ext4 1M 100%
+	sudo losetup /dev/loop51 t_disk.img
+	sudo kpartx -av /dev/loop51
+	sudo mkfs.ext4 /dev/mapper/loop51p1
+	sudo dd if=u-boot/u-boot-dtb.imx of=t_disk.img bs=512 seek=2 conv=notrunc
+	sudo mount /dev/mapper/loop51p1 /mnt
+	sudo cp -rfv linux-imx/arch/arm/boot/dts/nxp/imx/imx6ul-14x14-evk.dtb /mnt/
+	sudo cp -rfv linux-imx/arch/arm/boot/zImage /mnt/
+	sudo umount /mnt
+	sudo kpartx -d /dev/loop51
+	sudo losetup -d /dev/loop51
+	mv t_disk.img disk.img
 
-$(BOOT_SCR): bootscript
+qemuk: $(KERNEL_IMAGE) disk.img
+	$(QEMU_BIN) -M mcimx6ul-evk -m 1024M -nographic \
+		-kernel linux-imx/arch/arm/boot/zImage \
+		-dtb linux-imx/arch/arm/boot/dts/nxp/imx/imx6ul-14x14-evk.dtb \
+		-drive file=disk.img,format=raw,id=mysdcard -device sd-card,drive=mysdcard \
+		-append "console=ttymxc0 loglevel=8 earlycon earlyprintk rootfstype=ext4 root=/dev/mmcblk1 rw rootwait init=/sbin/init"
 
-$(UBOOT): u-boot
+qemuu:
+	$(QEMU_BIN) -M mcimx6ul-evk -m 1G -nographic \
+		-drive file=disk.img,format=raw,id=mycard \
+		-device sd-card,drive=mycard,bus=sd-bus \
+		-no-reboot
 
 sd_all:
 	@ls ${DISK}
@@ -73,6 +103,7 @@ sd_boot:
 clean:
 	rm -rf boot.scr
 	sudo rm -rf temp_boot temp_root
+	rm -rf *.img
 
 distclean:
 	rm -rf linux-imx u-boot
