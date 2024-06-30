@@ -20,10 +20,13 @@ image: $(UBOOT) $(KERNEL_IMAGE) $(DTB_IMAGE) $(BOOT_SCR)
 u-boot: $(UBOOT)
 
 $(UBOOT):
-	-git clone git@github.com:u-boot/u-boot.git --depth=1
+	-git clone git@github.com:u-boot/u-boot.git --depth=1 -b v2022.04-rc1
+	#cd u-boot && export CROSS_COMPILE=${CROSS_COMPILE} && \
+	#	make mx6ull_14x14_evk_defconfig && make -j16
 	cd u-boot && export CROSS_COMPILE=${CROSS_COMPILE} && \
-		make mx6ull_14x14_evk_defconfig && make -j16
-	ls -al u-boot/u-boot.bin
+		cp -rfv ../configs/uboot_user_fit_defconfig ./configs/ && \
+		make uboot_user_fit_defconfig && make -j16
+	ls -al u-boot/u-boot-dtb.imx
 	@echo "[INFO] uboot build!"
 
 bootscript:
@@ -33,12 +36,16 @@ linux: $(KERNEL_IMAGE) $(DTB_IMAGE)
 
 $(DTB_IMAGE):
 $(KERNEL_IMAGE):
-	-git clone https://github.com/nxp-imx/linux-imx.git --depth=1
+	-git clone https://github.com/nxp-imx/linux-imx.git --depth=1 -b lf-6.1.1-1.0.0
 	cd linux-imx && \
-		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} imx_v7_defconfig && \
+		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} imx_v6_v7_defconfig && \
 		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} -j16
 
 virutal-disk: disk.img
+
+uimage:
+	./u-boot/tools/mkimage -f configs/imx6ull_fit_image.its image.ub
+	./u-boot/tools/mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "boot script" -d configs/boot_fit.cmd boot.scr 6x_upgrade
 
 disk.img: $(KERNEL_IMAGE) $(DTB_IMAGE)
 	$(QEMU_DIR)/qemu-img create -f raw t_disk.img 1G
@@ -103,7 +110,8 @@ sd_boot:
 clean:
 	rm -rf boot.scr
 	sudo rm -rf temp_boot temp_root
-	rm -rf *.img
+	rm -rf *.img image.ub
+	rm -rf $(UBOOT) $(KERNEL_IMAGE) $(DTB_IMAGE) $(BOOT_SCR)
 
 distclean:
 	rm -rf linux-imx u-boot
