@@ -21,8 +21,8 @@ u-boot: $(UBOOT)
 
 $(UBOOT):
 	-git clone git@github.com:u-boot/u-boot.git --depth=1 -b v2022.04-rc1
-	#cd u-boot && export CROSS_COMPILE=${CROSS_COMPILE} && \
-	#	make mx6ull_14x14_evk_defconfig && make -j16
+	cd u-boot && export CROSS_COMPILE=${CROSS_COMPILE} && \
+		make mx6ull_14x14_evk_defconfig
 	cd u-boot && export CROSS_COMPILE=${CROSS_COMPILE} && \
 		cp -rfv ../configs/uboot_user_fit_defconfig ./configs/ && \
 		make uboot_user_fit_defconfig && make -j16
