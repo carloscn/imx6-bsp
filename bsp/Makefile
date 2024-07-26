@@ -19,13 +19,20 @@ image: $(UBOOT) $(KERNEL_IMAGE) $(DTB_IMAGE) $(BOOT_SCR)
 
 u-boot: $(UBOOT)
 
+UBOOT_USER_CONFIG=../configs/uboot_2018_user_fit_secureboot_defconfig
+CONFIG_NAME=$(notdir $(UBOOT_USER_CONFIG))
+CONFIG_TARGET=$(basename $(CONFIG_NAME))
+
 $(UBOOT):
-	-git clone git@github.com:u-boot/u-boot.git --depth=1 -b v2022.04-rc1
+	-git clone https://github.com/nxp-imx/uboot-imx.git u-boot --depth=1 -b imx_v2018.03_4.14.98_2.0.0_ga
 	cd u-boot && export CROSS_COMPILE=${CROSS_COMPILE} && \
-		make mx6ull_14x14_evk_defconfig
+		make mx6ull_14x14_evk_emmc_defconfig
+ifneq ($(UBOOT_USER_CONFIG),)
 	cd u-boot && export CROSS_COMPILE=${CROSS_COMPILE} && \
-		cp -rfv ../configs/uboot_user_fit_defconfig ./configs/ && \
-		make uboot_user_fit_defconfig && make -j16
+		cp -rfv $(UBOOT_USER_CONFIG) ./configs/ && \
+		make $(CONFIG_TARGET)
+endif
+	cd u-boot && make -j16
 	ls -al u-boot/u-boot-dtb.imx
 	@echo "[INFO] uboot build!"
 
@@ -36,9 +43,9 @@ linux: $(KERNEL_IMAGE) $(DTB_IMAGE)
 
 $(DTB_IMAGE):
 $(KERNEL_IMAGE):
-	-git clone https://github.com/nxp-imx/linux-imx.git --depth=1 -b lf-6.1.1-1.0.0
+	-git clone https://github.com/nxp-imx/linux-imx.git --depth=1 -b imx_4.9.11_1.0.0_ga
 	cd linux-imx && \
-		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} imx_v6_v7_defconfig && \
+		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} imx_v7_defconfig && \
 		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} -j16
 
 virutal-disk: disk.img
