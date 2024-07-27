@@ -36,7 +36,7 @@ endif
 	@echo "[INFO] uboot build!"
 
 bootscript:
-	./u-boot/tools/mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "boot script" -d configs/boot.cmd boot.scr 6x_upgrade
+	mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "boot script" -d configs/boot.cmd boot.scr 6x_upgrade
 
 linux: $(KERNEL_IMAGE) $(DTB_IMAGE)
 
@@ -50,8 +50,8 @@ $(KERNEL_IMAGE):
 virutal-disk: disk.img
 
 uimage:
-	./u-boot/tools/mkimage -f configs/imx6ull_fit_image.its image.ub
-	./u-boot/tools/mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "boot script" -d configs/boot_fit.cmd boot.scr 6x_upgrade
+	mkimage -f configs/imx6ull_fit_image.its image.ub
+	mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "boot script" -d configs/boot_fit.cmd boot.scr 6x_upgrade
 
 disk.img: $(KERNEL_IMAGE) $(DTB_IMAGE)
 	$(QEMU_DIR)/qemu-img create -f raw t_disk.img 1G
@@ -109,6 +109,7 @@ sd_boot:
 	sudo cp -rfv ${KERNEL_IMAGE} ${BOOT_PART}/
 	sudo cp -rfv ${DTB_IMAGE} ${BOOT_PART}/
 	sudo cp -rfv ${BOOT_SCR} ${BOOT_PART}/
+	-sudo cp -rfv image.ub ${BOOT_PART}/
 	sync
 	sudo umount ${UDISK}2
 	sudo umount ${UDISK}3

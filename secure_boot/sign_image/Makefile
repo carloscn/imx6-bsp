@@ -4,6 +4,7 @@ UBOOT_IMX_FILE=u-boot.imx
 UBOOT_IMX_LOG=u-boot-dtb.imx.log
 LINUX_IMX_FILE=zImage
 SRK_TABLE=../certs/SRK_1_2_3_4_table.bin
+SRK_FUSE=../certs/SRK_1_2_3_4_fuse.bin
 UBOOT_IMG_CERT=../certs/IMG1_1_sha256_2048_65537_v3_usr_crt.pem
 UBOOT_CSF_CERT=../certs/CSF1_1_sha256_2048_65537_v3_usr_crt.pem
 LINUX_IMG_CERT=../certs/IMG2_1_sha256_2048_65537_v3_usr_crt.pem
@@ -35,6 +36,9 @@ $(LINUX_CSF_CERT):
 $(SRK_TABLE):
 	@echo "[ERR] please place the file of [$(SRK_TABLE)] on this path!" ; false
 
+$(SRK_FUSE):
+	@echo "[ERR] please place the file of [$(SRK_FUSE)] on this path!" ; false
+
 sign_uboot: $(UBOOT_IMX_FILE) $(UBOOT_IMX_LOG) $(UBOOT_IMG_CERT) $(UBOOT_CSF_CERT) $(SRK_TABLE)
 	@mkdir -p certs
 	@echo "[INFO] gen the csf config file according to the $(UBOOT_IMX_FILE)!"
@@ -53,6 +57,15 @@ sign_linux: $(LINUX_IMX_FILE) $(LINUX_IMG_CERT) $(LINUX_CSF_CERT) $(SRK_TABLE)
 	@echo "[INFO] generate the bootable image!"
 	@cat zImage-pad-ivt.bin zImage_csf.bin > zImage_signed
 	@echo "[INFO] done! The output is [zImage_signed]"
+
+srk: $(SRK_FUSE)
+	@echo "[INFO] cat the srk binary:"
+	@hexdump -e '/4 "0x"' -e '/4 "%X""\n"' $(SRK_FUSE)
+	@echo "[INFO] uboot burn commands shown below:"
+	@hexdump -e '/4 "0x"' -e '/4 "%X""\n"' $(SRK_FUSE) | \
+	awk '{ \
+		printf "fuse prog 3 %d %s\n", NR-1, $$0 \
+	}'
 
 distclean: clean
 	@rm -rf $(UBOOT_IMX_FILE)
