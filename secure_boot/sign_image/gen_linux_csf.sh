@@ -67,7 +67,7 @@ close(\$out);
 EOF
 
 chmod +x $GENIVT
-./$GENIVT && hd $IVT_BIN
+./$GENIVT
 # Check genIVT execution result
 if [ $? -ne 0 ]; then
     echo "[ERR] Failed to execute genIVT"

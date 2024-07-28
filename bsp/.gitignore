@@ -3,3 +3,4 @@ linux-imx
 u-boot
 boot.scr
 image.ub
+buildroot

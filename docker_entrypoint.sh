@@ -6,6 +6,8 @@ log() {
 }
 
 chmod -R 777 /home/build/secure_boot
+chmod -R 777 /home/build/linux-imx
+chmod -R 777 /home/build/u-boot
 
 log "Changing to bsp directory."
 cd bsp || { log "Failed to change to bsp directory."; exit 1; }

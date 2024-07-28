@@ -9,7 +9,7 @@ DTB_IMAGE := linux-imx/arch/arm/boot/dts/imx6ull-14x14-evk.dtb
 QEMU_DIR=/opt/qemu/bin
 QEMU_BIN ?= $(QEMU_DIR)/qemu-system-arm
 
-.PHONY: clean rootfs u-boot linux
+.PHONY: clean rootfs u-boot linux buildroot
 
 prepare:
 	git submodule init
@@ -35,16 +35,29 @@ endif
 	ls -al u-boot/u-boot-dtb.imx
 	@echo "[INFO] uboot build!"
 
+buildroot:
+	bash pull_buildroot.sh
+	cd buildroot && make -j16
+
 bootscript:
 	mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "boot script" -d configs/boot.cmd boot.scr 6x_upgrade
 
 linux: $(KERNEL_IMAGE) $(DTB_IMAGE)
 
+LINUX_CONFIG_NAME=$(notdir $(LINUX_USER_CONFIG))
+LINUX_CONFIG_TARGET=$(basename $(LINUX_CONFIG_NAME))
+
 $(DTB_IMAGE):
 $(KERNEL_IMAGE):
 	bash pull_linux.sh
 	cd linux-imx && \
-		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} imx_v7_defconfig && \
+		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} imx_v7_defconfig
+ifneq ($(LINUX_USER_CONFIG),)
+	cd linux-imx && export CROSS_COMPILE=${CROSS_COMPILE} && \
+		cp -rfv $(LINUX_USER_CONFIG) ./arch/arm/configs/ && \
+		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} $(LINUX_CONFIG_TARGET)
+endif
+	cd linux-imx && \
 		make ARCH=arm CROSS_COMPILE=${CROSS_COMPILE} -j16
 
 virutal-disk: disk.img
