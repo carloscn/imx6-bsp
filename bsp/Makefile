@@ -66,6 +66,9 @@ uimage:
 	mkimage -f configs/imx6ull_fit_image.its image.ub
 	mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "boot script" -d configs/boot_fit.cmd boot.scr 6x_upgrade
 
+rootfs:
+	wget --no-check-certificate "https://github.com/carloscn/libs/raw/master/zdyz_imx6_rootfs.tar.bz2"
+
 disk.img: $(KERNEL_IMAGE) $(DTB_IMAGE)
 	$(QEMU_DIR)/qemu-img create -f raw t_disk.img 1G
 	parted t_disk.img mklabel msdos
