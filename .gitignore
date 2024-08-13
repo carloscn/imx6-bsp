@@ -1,0 +1,11 @@
+secure_boot/sign_image/genIVT
+secure_boot/sign_image/ivt.bin
+secure_boot/sign_image/u-boot-dtb.imx.log
+secure_boot/sign_image/u-boot-gen.csf
+secure_boot/sign_image/u-boot_csf.bin
+secure_boot/sign_image/u-boot_signed.imx
+secure_boot/sign_image/zImage-gen.csf
+secure_boot/sign_image/zImage-pad-ivt.bin
+secure_boot/sign_image/zImage-pad.bin
+secure_boot/sign_image/zImage_csf.bin
+secure_boot/sign_image/zImage_signed

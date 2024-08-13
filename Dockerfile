@@ -19,7 +19,7 @@ RUN apt install -y gawk wget git-core diffstat unzip texinfo bc lzop \
     python3-pip python3-pexpect xz-utils debianutils iputils-ping libssl-dev \
     libsdl1.2-dev xterm tar locales net-tools rsync sudo vim curl wget
 
-RUN curl -s "https://raw.githubusercontent.com/carloscn/script/master/down_tool_chains/down_toolchain_old.sh" | bash
+RUN curl -s "https://raw.githubusercontent.com/carloscn/script/master/down_tool_chains/down_toolchain_old_armhf_linux.sh" | bash
 RUN rm -rfv *.tar.xz
 
 # Set up locales
