@@ -31,5 +31,5 @@ else
         -v ${PWD}/secure_boot:/home/build/secure_boot \
         -v ${PWD}/docker_entrypoint.sh:/home/build/docker_entrypoint.sh \
         -w /home/build \
-        ${DOCKER_TAG} /bin/bash -c "/home/build/docker_entrypoint.sh"
+        ${DOCKER_TAG} #/bin/bash -c "/home/build/docker_entrypoint.sh"
 fi

@@ -35,13 +35,25 @@ if [ -z "$hab_blocks" ]; then
     exit 1
 fi
 
+# Extract HAB Blocks information from log file
+cdc_blocks=$(grep "DCD Blocks" "$log_file" | awk '{print $3, $4, $5}')
+if [ -z "$cdc_blocks" ]; then
+    echo "[ERR] Could not find CDC Blocks in log file"
+    exit 1
+fi
+
 # Extract sign_len, start_address, and log_hex_size
 read -r sign_len start_address log_hex_size <<< "$hab_blocks"
+read -r sign_len_cdc start_address_cdc log_hex_size_cdc <<< "$cdc_blocks"
 
 # Remove leading zeros and add 0x prefix
 sign_len=$(printf "0x%x" $((16#$sign_len)))
 start_address=$(printf "0x%x" $((16#$start_address)))
 log_hex_size=$(printf "0x%x" $((16#$log_hex_size)))
+sign_len_cdc=$(printf "0x%x" $((16#$sign_len_cdc)))
+start_address_cdc=$(printf "0x%x" $((16#$start_address_cdc)))
+log_hex_size_cdc=$(printf "0x%x" $((16#$log_hex_size_cdc)))
+
 
 # Compare log hex_size with actual file hex_size
 if [ "$hex_size" != "$log_hex_size" ]; then
@@ -79,7 +91,7 @@ File = "../certs/IMG1_1_sha256_2048_65537_v3_usr_crt.pem"
 [Authenticate Data]
 Verification index = 2
 Blocks = $sign_len $start_address $hex_size "u-boot.imx",\
-0x00910000 0x0000002c 0x000001e8 "u-boot.imx"
+$sign_len_cdc $start_address_cdc $log_hex_size_cdc "u-boot.imx"
 EOF
 )
 

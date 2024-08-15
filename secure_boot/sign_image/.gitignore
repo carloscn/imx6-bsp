@@ -1,3 +1,4 @@
 .vscode
 u-boot.imx
 zImage
+*.imx
