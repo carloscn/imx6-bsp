@@ -50,13 +50,13 @@ sign_uboot: $(UBOOT_IMX_FILE) $(UBOOT_IMX_LOG) $(UBOOT_IMG_CERT) $(UBOOT_CSF_CER
 	@echo "[INFO] done! The output is [u-boot_signed.imx]"
 
 sign_uboot_sdp: $(UBOOT_IMX_FILE) $(UBOOT_IMX_LOG) $(UBOOT_IMG_CERT) $(UBOOT_CSF_CERT) $(SRK_TABLE)
-	@mkdir -p certs
 	@echo "[INFO] gen the csf config file according to the $(UBOOT_IMX_FILE)!"
-	@./gen_uboot_csf_sdp.sh -f $(UBOOT_IMX_FILE) -o u-boot-gen.csf -l u-boot-dtb.imx.log
+	@cp -rfv $(UBOOT_IMX_FILE) u-boot_x.imx
+	@./gen_uboot_csf_sdp.sh -f u-boot_x.imx -o u-boot-gen.csf -l u-boot-dtb.imx.log
 	@echo "[INFO] gen the CSF header binary and sign the u-boot image!"
 	@./cst --o u-boot_csf.bin --i u-boot-gen.csf
 	@echo "[INFO] generate the bootable image sdp!"
-	@cat $(UBOOT_IMX_FILE) u-boot_csf.bin > u-boot_signed_sdp.imx
+	@cat u-boot_x.imx u-boot_csf.bin > u-boot_signed_sdp.imx
 	@echo "[INFO] done! The output is [u-boot_signed_sdp.imx] and run: $ sudo uuu -v SDP: boot -f u-boot_signed_sdp.imx"
 
 sign_linux: $(LINUX_IMX_FILE) $(LINUX_IMG_CERT) $(LINUX_CSF_CERT) $(SRK_TABLE)

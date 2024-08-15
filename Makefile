@@ -20,6 +20,15 @@ all:
 	@echo "[INFO] $ dd if=u-boot_signed.imx of=/dev/sdx bs=1K seek=1 && sync"
 	@echo "[INFO] $ cp -rfv zImage_signed /media/${USER}/boot/"
 
+uuu:
+	@sudo apt install libusb-1.0-0-dev libbz2-dev libzstd-dev pkg-config cmake libssl-dev g++ zlib1g-dev libtinyxml2-dev
+	@git submodule init
+	@git submodule update
+	@cd mfgtools && cmake -S . -B build
+	@cd mfgtools && cmake --build build --target all
+	@cd mfgtools/build && sudo make install
+	@uuu -h
+
 clean:
 	rm -rf zImage_signed u-boot_signed.imx
 	make clean -C bsp
