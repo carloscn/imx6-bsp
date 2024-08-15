@@ -78,8 +78,7 @@ File = "../certs/IMG1_1_sha256_2048_65537_v3_usr_crt.pem"
 
 [Authenticate Data]
 Verification index = 2
-Blocks = $sign_len $start_address $hex_size "u-boot.imx",\
-0x00910000 0x0000002c 0x000001e8 "u-boot.imx"
+Blocks = $sign_len $start_address $hex_size "u-boot.imx"
 EOF
 )
 
